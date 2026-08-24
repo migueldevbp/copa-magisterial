@@ -23,10 +23,29 @@
       </div>
       <h1>Acceso operadores</h1>
       <p class="login-sub">Carga de equipos, fixture, resultados y jugadores</p>
-      <form id="login-form" autocomplete="off">
+      <form id="login-form" autocomplete="off" data-lpignore="true" data-1p-ignore="true">
+        <!-- Trampa para que el navegador no rellene la clave real -->
+        <input type="text" name="username" autocomplete="username" tabindex="-1" aria-hidden="true" class="autofill-trap" value="" />
         <label>
           Contraseña
-          <input type="password" id="login-password" name="admin-pass" required placeholder="Ingresá la clave" autocomplete="off" />
+          <div class="password-field">
+            <input
+              type="password"
+              id="login-password"
+              name="copa-op-clave"
+              required
+              placeholder="Ingresá la clave"
+              autocomplete="new-password"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              data-lpignore="true"
+              data-1p-ignore="true"
+              readonly
+              data-password-input
+            />
+            <button type="button" class="password-toggle" data-toggle-password aria-label="Mostrar contraseña" aria-pressed="false" title="Mostrar / ocultar"></button>
+          </div>
         </label>
         <p id="login-error" class="form-error hidden" role="alert">Contraseña incorrecta</p>
         <button type="submit" class="btn-primary">Entrar</button>
@@ -295,6 +314,7 @@
   </dialog>
 
   <script src="js/config.js"></script>
+  <script src="js/password-field.js"></script>
   <script src="js/llave.js"></script>
   <script src="js/data-store.js"></script>
   <script src="js/google-sheets.js"></script>

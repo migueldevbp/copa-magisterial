@@ -22,14 +22,32 @@
       </div>
       <h1>Portal delegados</h1>
       <p class="del-sub">Acceso solo a la información de tu equipo</p>
-      <form id="del-login-form">
+      <form id="del-login-form" autocomplete="off" data-lpignore="true" data-1p-ignore="true">
+        <input type="text" name="username" autocomplete="username" tabindex="-1" aria-hidden="true" class="autofill-trap" value="" />
         <label>Equipo
-          <select id="del-equipo" required>
+          <select id="del-equipo" required autocomplete="off">
             <option value="">Cargando equipos…</option>
           </select>
         </label>
         <label>Clave de delegado
-          <input type="password" id="del-clave" required placeholder="Clave asignada por organización" autocomplete="current-password" />
+          <div class="password-field">
+            <input
+              type="password"
+              id="del-clave"
+              name="copa-del-clave"
+              required
+              placeholder="Clave asignada por organización"
+              autocomplete="new-password"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              data-lpignore="true"
+              data-1p-ignore="true"
+              readonly
+              data-password-input
+            />
+            <button type="button" class="password-toggle" data-toggle-password aria-label="Mostrar contraseña" aria-pressed="false" title="Mostrar / ocultar"></button>
+          </div>
         </label>
         <p id="del-login-error" class="form-error hidden"></p>
         <button type="submit" class="btn-primary">Entrar</button>
@@ -73,6 +91,7 @@
   </div>
 
   <script src="js/config.js"></script>
+  <script src="js/password-field.js"></script>
   <script src="js/google-sheets.js"></script>
   <script src="js/delegado.js"></script>
 </body>

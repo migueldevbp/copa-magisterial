@@ -828,3 +828,53 @@ select {
   margin: 0.35rem 0 0;
   font-weight: 500;
 }
+
+/* ——— Password field (admin + delegados) ——— */
+.autofill-trap {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.password-field {
+  position: relative;
+  display: block;
+}
+
+.password-field input {
+  width: 100%;
+  padding-right: 2.75rem;
+  box-sizing: border-box;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: #546e7a;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.password-toggle:hover,
+.password-toggle.is-visible {
+  color: #0d1b3e;
+  background: rgba(13, 27, 62, 0.06);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid #d32f2f;
+  outline-offset: 1px;
+}
