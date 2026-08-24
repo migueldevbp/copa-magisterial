@@ -2,6 +2,15 @@
 
 Sitio estático + **backend Google Sheets** (lectura API + escritura Apps Script).
 
+## Sitio publicado
+
+| Destino | URL |
+|---------|-----|
+| Dashboard público | https://migueldevbp.github.io/copa-magisterial/ |
+| Operadores | https://migueldevbp.github.io/copa-magisterial/admin.html |
+| Portal delegados | https://migueldevbp.github.io/copa-magisterial/delegado.html |
+| Código | https://github.com/migueldevbp/copa-magisterial |
+
 ---
 
 ## Accesos
@@ -10,6 +19,7 @@ Sitio estático + **backend Google Sheets** (lectura API + escritura Apps Script
 |---------|---------|--------|
 | Dashboard público | [`index.html`](index.html) | Comunidad (Tabla, Fixture, Llave, Honor) |
 | Panel operadores | [`admin.html`](admin.html) | Carga de datos + sync Sheets |
+| Portal delegados | [`delegado.html`](delegado.html) | Solo su equipo |
 | Guía operadores | [`docs/GUIA-OPERADORES.md`](docs/GUIA-OPERADORES.md) | |
 | **Backend Sheets** | [`docs/GOOGLE-SHEETS.md`](docs/GOOGLE-SHEETS.md) | Setup API + Apps Script |
 
@@ -38,7 +48,7 @@ Detalle paso a paso: **[docs/GOOGLE-SHEETS.md](docs/GOOGLE-SHEETS.md)**
 
 ## Fuentes de datos (prioridad)
 
-1. **Google Sheets** (si ID + API Key están  
+1. **Google Sheets** (si ID + API Key)  
 2. Datos locales del admin  
 3. `data/torneo.json`  
 4. Modo demo  
@@ -53,13 +63,14 @@ python -m http.server 8080
 
 - Público: http://localhost:8080/  
 - Operadores: http://localhost:8080/admin.html  
+- Delegados: http://localhost:8080/delegado.html  
 
 ---
 
 ## Estructura clave
 
 ```
-├── index.html / admin.html
+├── index.html / admin.html / delegado.html
 ├── apps-script/Codigo.gs     ← backend Sheets
 ├── js/config.js              ← credenciales
 ├── js/google-sheets.js       ← cliente
