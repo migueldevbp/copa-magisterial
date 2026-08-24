@@ -5,6 +5,7 @@
   let store = DataStore.emptyBundle();
   let modalMode = null; // { type, id? }
   let toastTimer = null;
+  let syncChain = Promise.resolve();
 
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -19,9 +20,16 @@
     toastTimer = setTimeout(() => el.classList.add('hidden'), 2800);
   }
 
+  function setSyncStatus(text, state = '') {
+    const el = $('#sync-status');
+    if (!el) return;
+    el.textContent = text;
+    el.classList.toggle('is-busy', state === 'busy');
+    el.classList.toggle('is-error', state === 'error');
+  }
+
   function persist() {
     store = DataStore.saveLocal(store);
-    // Invalidar caché del dashboard público
     try {
       localStorage.removeItem(CONFIG.CACHE_KEY);
     } catch {
@@ -29,6 +37,85 @@
     }
     renderAll();
     updateMeta();
+  }
+
+  /** Guarda local + publica al dashboard (Sheets) sin que el operador lo piense */
+  function persistAndSync(okMsg = 'Guardado y publicado') {
+    persist();
+    setSyncStatus('Publicando…', 'busy');
+    syncChain = syncChain
+      .catch(() => {})
+      .then(async () => {
+        if (!GoogleSheets.isWriteConfigured()) {
+          setSyncStatus('Sin servidor', 'error');
+          toast('Guardado solo en este navegador (falta configurar el backend)', true);
+          return;
+        }
+        try {
+          store.llave = Llave.propagarGanadores(store.llave || Llave.emptyLlave());
+          await GoogleSheets.pushToScript(store);
+          try {
+            localStorage.removeItem(CONFIG.CACHE_KEY);
+          } catch {
+            /* ignore */
+          }
+          setSyncStatus('Publicado');
+          if (okMsg) toast(okMsg);
+        } catch (err) {
+          setSyncStatus('Error al publicar', 'error');
+          toast(String(err.message || err), true);
+        }
+      });
+    return syncChain;
+  }
+
+  /** Al entrar al panel, trae lo que ve el público para no trabajar desfasado */
+  async function hydrateFromCloud() {
+    setSyncStatus('Cargando…', 'busy');
+    loadStore();
+    if (!GoogleSheets.isConfigured() && !GoogleSheets.isWriteConfigured()) {
+      setSyncStatus('Local');
+      return;
+    }
+    try {
+      let data = null;
+      if (GoogleSheets.isConfigured()) {
+        try {
+          data = await GoogleSheets.fetchViaApi();
+        } catch (err) {
+          console.warn(err);
+        }
+      }
+      if (GoogleSheets.isWriteConfigured()) {
+        try {
+          const full = await GoogleSheets.pullFromScript();
+          data = {
+            ...(data || {}),
+            ...full,
+            equipos: full.equipos?.length ? full.equipos : data?.equipos || [],
+            delegados: full.delegados || data?.delegados || [],
+            reclamos: full.reclamos || data?.reclamos || [],
+            pendientes: full.pendientes || data?.pendientes || [],
+          };
+        } catch (err) {
+          console.warn('Pull script:', err);
+          if (!data) throw err;
+        }
+      }
+      if (data) {
+        store = DataStore.normalizeBundle({
+          ...data,
+          torneoFinalizado: data.torneoFinalizado,
+          source: 'local',
+        });
+        persist();
+      }
+      setSyncStatus('Al día');
+    } catch (err) {
+      console.warn(err);
+      setSyncStatus('Modo local', 'error');
+      toast('No se pudo cargar del servidor; usando datos de este navegador', true);
+    }
   }
 
   function loadStore() {
@@ -383,7 +470,7 @@
       });
       persist();
       if (!store.equipos.length) {
-        toast('El Sheet no tiene equipos. Cargalos en Equipos y subí a Sheets.', true);
+        toast('No hay equipos. Agregá el primero en Equipos.', true);
         return false;
       }
       toast(`${store.equipos.length} equipos cargados`);
@@ -725,22 +812,8 @@
       const idx = store.delegados.findIndex((x) => x.equipoId === d.equipoId);
       if (idx >= 0) store.delegados[idx] = d;
       else store.delegados.push(d);
-      persist();
       closeModal();
-      toast('Acceso guardado — subiendo a Sheets…');
-      // Crítico: sin subir, el portal no puede validar la clave
-      (async () => {
-        try {
-          if (!GoogleSheets.isWriteConfigured()) {
-            toast('Guardado local. Configurá Apps Script y subí a Sheets.', true);
-            return;
-          }
-          await GoogleSheets.pushToScript(store);
-          toast(`Listo. Portal: equipo "${equipoNombre(d.equipoId)}" · clave: ${d.clave}`);
-        } catch (err) {
-          toast(`Guardado local, pero no subió: ${err.message}. Usá ↑ Subir a Sheets.`, true);
-        }
-      })();
+      persistAndSync(`Acceso listo · ${equipoNombre(d.equipoId)} · clave: ${d.clave}`);
       return;
     }
 
@@ -763,9 +836,8 @@
       else store.pendientes.push(p);
     }
 
-    persist();
     closeModal();
-    toast('Guardado');
+    persistAndSync('Guardado y publicado');
   }
 
   function deleteItem(type, id) {
@@ -774,6 +846,7 @@
       store.equipos = store.equipos.filter((x) => x.id !== id);
       store.jugadores = store.jugadores.filter((x) => x.equipoId !== id);
       store.fixture = store.fixture.filter((x) => x.equipoAId !== id && x.equipoBId !== id);
+      store.delegados = store.delegados.filter((x) => x.equipoId !== id);
     }
     if (type === 'partido') {
       store.fixture = store.fixture.filter((x) => x.id !== id);
@@ -787,21 +860,6 @@
     }
     if (type === 'delegado') {
       store.delegados = store.delegados.filter((x) => x.equipoId !== id);
-      persist();
-      toast('Eliminado — subiendo a Sheets…');
-      (async () => {
-        try {
-          if (GoogleSheets.isWriteConfigured()) {
-            await GoogleSheets.pushToScript(store);
-            toast('Acceso eliminado en Sheets');
-          } else {
-            toast('Eliminado local. Subí a Sheets cuando configures el script.');
-          }
-        } catch (err) {
-          toast(`Eliminado local; no subió: ${err.message}`, true);
-        }
-      })();
-      return;
     }
     if (type === 'reclamo') {
       store.reclamos = store.reclamos.filter((x) => x.id !== id);
@@ -809,8 +867,7 @@
     if (type === 'pendiente') {
       store.pendientes = store.pendientes.filter((x) => x.id !== id);
     }
-    persist();
-    toast('Eliminado');
+    persistAndSync('Eliminado y publicado');
   }
 
   function seedDemo() {
@@ -829,7 +886,7 @@
       ...j,
       id: j.id || `j-${i + 1}`,
     }));
-    store.delegados = store.equipos.map((e, i) => ({
+    store.delegados = store.equipos.map((e) => ({
       equipoId: e.id,
       clave: `equipo${e.id}`,
       nombre: `Delegado ${e.nombre}`,
@@ -847,12 +904,11 @@
       },
     ];
     store.reclamos = store.reclamos || [];
-    persist();
-    toast('Datos de ejemplo cargados (claves delegado: equipo1, equipo2, ...)');
+    persistAndSync('Ejemplo cargado y publicado');
   }
 
   function clearAll() {
-    if (!confirm('Se borrarán TODOS los datos locales del torneo. ¿Seguro?')) return;
+    if (!confirm('Se borrarán TODOS los datos del torneo (también del dashboard público). ¿Seguro?')) return;
     DataStore.clearLocal();
     store = DataStore.emptyBundle();
     try {
@@ -862,20 +918,24 @@
     }
     renderAll();
     updateMeta();
-    toast('Datos borrados');
+    persistAndSync('Torneo vacío y publicado');
+  }
+
+  async function enterAdmin() {
+    showApp(true);
+    await hydrateFromCloud();
+    renderAll();
+    updateMeta();
   }
 
   function bindEvents() {
-    $('#login-form')?.addEventListener('submit', (e) => {
+    $('#login-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const pass = $('#login-password')?.value || '';
       const err = $('#login-error');
       if (DataStore.login(pass)) {
         err?.classList.add('hidden');
-        loadStore();
-        showApp(true);
-        renderAll();
-        updateMeta();
+        await enterAdmin();
       } else {
         err?.classList.remove('hidden');
       }
@@ -919,8 +979,7 @@
     $('#btn-save-torneo')?.addEventListener('click', () => {
       store.torneoFinalizado = Boolean($('#chk-finalizado')?.checked);
       CONFIG.TORNEO_FINALIZADO = store.torneoFinalizado;
-      persist();
-      toast('Estado del torneo guardado');
+      persistAndSync('Estado del torneo publicado');
     });
 
     $('#btn-seed-demo')?.addEventListener('click', seedDemo);
@@ -932,155 +991,31 @@
         if (!confirm('Esto regenera la llave y borra marcadores actuales. ¿Continuar?')) return;
       }
       store.llave = Llave.crearEstructura(size);
-      persist();
-      toast(`Llave de ${size} generada`);
+      persistAndSync(`Llave de ${size} publicada`);
       activateSection('llave');
     });
 
     $('#btn-propagar-llave')?.addEventListener('click', () => {
       if (!store.llave?.activa) return toast('No hay llave activa', true);
       store.llave = Llave.propagarGanadores(store.llave);
-      persist();
-      toast('Avance de ganadores actualizado');
+      persistAndSync('Avance de ganadores publicado');
     });
 
     $('#btn-desactivar-llave')?.addEventListener('click', () => {
       if (!confirm('¿Desactivar la llave pública?')) return;
       store.llave = Llave.emptyLlave();
-      persist();
-      toast('Llave desactivada');
+      persistAndSync('Llave desactivada y publicada');
     });
-
-    function refreshSheetsStatus() {
-      const el = $('#sheets-status');
-      if (!el || typeof GoogleSheets === 'undefined') return;
-      const s = GoogleSheets.statusInfo();
-      const lines = [
-        `Lectura API: ${s.lectura ? '✅ configurada' : '⏳ pendiente (SHEET_ID + API_KEY)'}`,
-        `Escritura Apps Script: ${s.escritura ? '✅ configurada' : '⏳ pendiente (APPS_SCRIPT_URL + TOKEN)'}`,
-      ];
-      if (s.sheetId) lines.push(`Sheet ID: ${s.sheetId.slice(0, 12)}…`);
-      el.textContent = lines.join(' · ');
-    }
-
-    $('#btn-sheets-ping')?.addEventListener('click', async () => {
-      const msg = $('#sheets-sync-msg');
-      try {
-        msg.textContent = 'Probando…';
-        const r = await GoogleSheets.pingScript();
-        const ver = r.version || '(sin versión — script viejo)';
-        msg.textContent = `OK · versión: ${ver} · ${r.name || r.message || ''}`;
-        if (!r.version || !String(r.version).includes('delegados-v3')) {
-          toast('Script viejo: pegá Codigo.gs y desplegá Nueva versión', true);
-        } else {
-          toast('Apps Script al día (delegados-v3)');
-        }
-      } catch (err) {
-        msg.textContent = String(err.message || err);
-        toast(String(err.message || err), true);
-      }
-      refreshSheetsStatus();
-    });
-
-    $('#btn-sheets-setup')?.addEventListener('click', async () => {
-      try {
-        await GoogleSheets.setupViaScript();
-        toast('Hojas preparadas en el Sheet');
-        $('#sheets-sync-msg').textContent = 'Hojas listas (incluye Delegados, Reclamos, Pendientes)';
-      } catch (err) {
-        toast(String(err.message || err), true);
-      }
-    });
-
-    $('#btn-sheets-pull')?.addEventListener('click', async () => {
-      if (!confirm('¿Reemplazar los datos del panel con lo que hay en Google Sheets?')) return;
-      const msg = $('#sheets-sync-msg');
-      try {
-        msg.textContent = 'Descargando…';
-        let data = null;
-        let pullError = null;
-
-        // Preferir API Key para datos públicos; Apps Script para secretos (delegados)
-        if (GoogleSheets.isConfigured()) {
-          try {
-            data = await GoogleSheets.fetchViaApi();
-          } catch (err) {
-            pullError = err;
-          }
-        }
-
-        if (GoogleSheets.isWriteConfigured()) {
-          try {
-            const full = await GoogleSheets.pullFromScript();
-            data = {
-              ...(data || {}),
-              ...full,
-              // si API ya trajo equipos y script falló parcial, priorizar full
-              equipos: full.equipos?.length ? full.equipos : data?.equipos || [],
-              delegados: full.delegados || data?.delegados || [],
-              reclamos: full.reclamos || data?.reclamos || [],
-              pendientes: full.pendientes || data?.pendientes || [],
-            };
-          } catch (err) {
-            pullError = err;
-            // Si el script viejo no tiene action "read", seguimos con API
-            if (!data) throw err;
-            console.warn('Pull script (se usa API):', err);
-            toast('Apps Script sin action read — se bajó por API. Actualizá Codigo.gs y redesplegá.', true);
-          }
-        }
-
-        if (!data) {
-          throw pullError || new Error('Configurá Sheets o Apps Script en config.js');
-        }
-
-        store = DataStore.normalizeBundle({
-          ...data,
-          torneoFinalizado: data.torneoFinalizado,
-          source: 'local',
-        });
-        persist();
-        msg.textContent = `Descargado: ${store.equipos.length} equipos · ${store.fixture.length} partidos`;
-        toast('Datos bajados desde Sheets');
-      } catch (err) {
-        msg.textContent = String(err.message || err);
-        toast(String(err.message || err), true);
-      }
-    });
-
-    $('#btn-sheets-push')?.addEventListener('click', async () => {
-      if (!confirm('¿Subir los datos del panel a Google Sheets? Esto sobrescribe el Sheet.')) return;
-      const msg = $('#sheets-sync-msg');
-      try {
-        msg.textContent = 'Subiendo…';
-        store.llave = Llave.propagarGanadores(store.llave || Llave.emptyLlave());
-        const result = await GoogleSheets.pushToScript(store);
-        try {
-          localStorage.removeItem(CONFIG.CACHE_KEY);
-        } catch {
-          /* ignore */
-        }
-        msg.textContent = `Subido OK · ${result.updatedAt || ''}`;
-        toast('Datos publicados en Google Sheets');
-      } catch (err) {
-        msg.textContent = String(err.message || err);
-        toast(String(err.message || err), true);
-      }
-    });
-
-    // refrescar estado al entrar
-    document.querySelector('[data-section="sheets"]')?.addEventListener('click', refreshSheetsStatus);
-    refreshSheetsStatus();
 
     $('#btn-export-json')?.addEventListener('click', () => {
       const json = DataStore.exportJson(store);
       DataStore.downloadText('torneo.json', json);
-      toast('JSON descargado — reemplazá data/torneo.json y publicá');
+      toast('JSON descargado');
     });
 
     $('#btn-export-csv')?.addEventListener('click', () => {
       DataStore.exportCsvSheets(store);
-      toast('CSV descargados (4 archivos)');
+      toast('CSV descargados');
     });
 
     $('#import-json')?.addEventListener('change', async (e) => {
@@ -1090,8 +1025,7 @@
         const text = await file.text();
         const parsed = JSON.parse(text);
         store = DataStore.normalizeBundle(parsed);
-        persist();
-        toast('Importación correcta');
+        persistAndSync('Importación publicada');
       } catch (err) {
         toast('JSON inválido', true);
         console.error(err);
@@ -1103,10 +1037,7 @@
   function init() {
     bindEvents();
     if (DataStore.isAuthenticated()) {
-      loadStore();
-      showApp(true);
-      renderAll();
-      updateMeta();
+      enterAdmin();
     } else {
       showApp(false);
     }

@@ -23,10 +23,10 @@
       </div>
       <h1>Acceso operadores</h1>
       <p class="login-sub">Carga de equipos, fixture, resultados y jugadores</p>
-      <form id="login-form" autocomplete="on">
+      <form id="login-form" autocomplete="off">
         <label>
           Contraseña
-          <input type="password" id="login-password" name="password" required placeholder="Ingresá la clave" />
+          <input type="password" id="login-password" name="admin-pass" required placeholder="Ingresá la clave" autocomplete="off" />
         </label>
         <p id="login-error" class="form-error hidden" role="alert">Contraseña incorrecta</p>
         <button type="submit" class="btn-primary">Entrar</button>
@@ -47,6 +47,7 @@
           </div>
         </div>
         <div class="admin-header-actions">
+          <span id="sync-status" class="sync-status" title="Estado de publicación">Listo</span>
           <a href="index.html" class="btn-ghost-admin" target="_blank" rel="noopener">Ver público</a>
           <a href="delegado.html" class="btn-ghost-admin" target="_blank" rel="noopener">Portal delegados</a>
           <button type="button" id="btn-logout" class="btn-ghost-admin">Salir</button>
@@ -61,7 +62,6 @@
         <button type="button" class="admin-tab" data-section="reclamos">Reclamos</button>
         <button type="button" class="admin-tab" data-section="pendientes">Pendientes</button>
         <button type="button" class="admin-tab" data-section="llave">Llave</button>
-        <button type="button" class="admin-tab" data-section="sheets">Google Sheets</button>
         <button type="button" class="admin-tab" data-section="torneo">Torneo</button>
         <button type="button" class="admin-tab" data-section="exportar">Exportar</button>
       </nav>
@@ -226,45 +226,6 @@
         </div>
       </section>
 
-      <!-- GOOGLE SHEETS -->
-      <section id="sec-sheets" class="admin-section">
-        <div class="admin-toolbar">
-          <h2>Google Sheets</h2>
-        </div>
-        <div class="admin-cards">
-          <article class="admin-card">
-            <h3>Estado de conexión</h3>
-            <p id="sheets-status" class="admin-meta">Revisando configuración…</p>
-            <div class="btn-row">
-              <button type="button" id="btn-sheets-ping" class="btn-secondary">Probar Apps Script</button>
-              <button type="button" id="btn-sheets-setup" class="btn-secondary">Preparar hojas</button>
-            </div>
-          </article>
-          <article class="admin-card">
-            <h3>Sincronizar</h3>
-            <p class="admin-help">
-              <strong>Bajar</strong> trae los datos del Sheet al panel.<br />
-              <strong>Subir</strong> publica lo que tenés acá hacia Google Sheets (lo ve toda la comunidad).
-            </p>
-            <div class="btn-row">
-              <button type="button" id="btn-sheets-pull" class="btn-secondary">↓ Bajar desde Sheets</button>
-              <button type="button" id="btn-sheets-push" class="btn-primary">↑ Subir a Sheets</button>
-            </div>
-            <p id="sheets-sync-msg" class="admin-meta"></p>
-          </article>
-          <article class="admin-card" style="grid-column:1/-1">
-            <h3>Configuración en <code>js/config.js</code></h3>
-            <ol class="admin-steps">
-              <li><code>GOOGLE_SHEET_ID</code> — ID del spreadsheet</li>
-              <li><code>GOOGLE_API_KEY</code> — API Key (lectura pública)</li>
-              <li><code>APPS_SCRIPT_URL</code> — URL de la app web</li>
-              <li><code>APPS_SCRIPT_TOKEN</code> — mismo token que en <code>apps-script/Codigo.gs</code></li>
-            </ol>
-            <p class="admin-help">Guía completa: <code>docs/GOOGLE-SHEETS.md</code></p>
-          </article>
-        </div>
-      </section>
-
       <!-- TORNEO -->
       <section id="sec-torneo" class="admin-section">
         <div class="admin-toolbar">
@@ -285,14 +246,11 @@
             </div>
           </article>
           <article class="admin-card">
-            <h3>Cómo publicar para todos</h3>
-            <ol class="admin-steps">
-              <li>Cargá equipos, fixture, resultados y jugadores aquí.</li>
-              <li>Andá a <strong>Exportar</strong> → descargá <code>torneo.json</code>.</li>
-              <li>Reemplazá el archivo <code>data/torneo.json</code> del proyecto.</li>
-              <li>Subí/publicá el sitio (GitHub Pages) para que la comunidad vea los datos.</li>
-            </ol>
-            <p class="admin-help">Google Sheets se conectará después. Mientras tanto este flujo ya sirve para el evento.</p>
+            <h3>Publicación automática</h3>
+            <p class="admin-help">
+              Todo lo que agregues, edites o borres se publica solo al dashboard público
+              (no hace falta subir ni bajar nada). El indicador <strong>Publicado</strong> arriba a la derecha confirma que la comunidad ya lo ve.
+            </p>
           </article>
         </div>
       </section>

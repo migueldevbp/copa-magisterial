@@ -152,6 +152,28 @@
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.sync-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #a5d6a7;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(165, 214, 167, 0.35);
+  white-space: nowrap;
+}
+
+.sync-status.is-busy {
+  color: #ffe082;
+  border-color: rgba(255, 224, 130, 0.4);
+}
+
+.sync-status.is-error {
+  color: #ffcdd2;
+  border-color: rgba(255, 205, 210, 0.45);
 }
 
 .btn-ghost-admin {
