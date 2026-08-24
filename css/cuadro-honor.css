@@ -1,0 +1,265 @@
+/* =========================================================
+   Cuadro de honor — podio y destacados
+   ========================================================= */
+
+.honor-locked {
+  text-align: center;
+  padding: 2.5rem 1.25rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.honor-locked h2 {
+  margin: 0 0 0.5rem;
+  color: var(--navy);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+}
+
+.honor-locked p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.honor-preview-note {
+  display: inline-block;
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--warn);
+  background: rgba(230, 81, 0, 0.1);
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+}
+
+/* Podio */
+.podio {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  align-items: end;
+}
+
+.podio-puesto {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.25rem 1rem;
+  text-align: center;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.podio-puesto::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+}
+
+.podio-oro::before {
+  background: linear-gradient(90deg, #f6d365, #fda085);
+}
+
+.podio-plata::before {
+  background: linear-gradient(90deg, #c0c0c0, #e8e8e8);
+}
+
+.podio-bronce::before {
+  background: linear-gradient(90deg, #cd7f32, #e8a86a);
+}
+
+.podio-medalla {
+  font-size: 2rem;
+  line-height: 1;
+  margin-bottom: 0.35rem;
+}
+
+.podio-logo {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 0.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--surface-2);
+  border: 3px solid var(--line);
+}
+
+.podio-nombre {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.podio-label {
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+@media (min-width: 768px) {
+  .podio {
+    grid-template-columns: 1fr 1.15fr 1fr;
+    gap: 1rem;
+  }
+
+  .podio-plata {
+    order: 1;
+    padding-bottom: 1.5rem;
+  }
+
+  .podio-oro {
+    order: 2;
+    padding: 1.75rem 1rem 2rem;
+    transform: translateY(-8px);
+  }
+
+  .podio-bronce {
+    order: 3;
+  }
+
+  .podio-oro .podio-logo {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+/* Cards de destacados */
+.honor-grid {
+  display: grid;
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .honor-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.honor-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.1rem;
+  box-shadow: var(--shadow);
+}
+
+.honor-card h3 {
+  margin: 0 0 0.65rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.honor-card-body {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.honor-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--red) 0%, var(--navy) 100%);
+  color: #fff;
+  display: grid;
+  place-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.honor-card-info strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.honor-card-info span {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.honor-stat {
+  margin-left: auto;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Chart + tabla goleadores */
+.honor-charts {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .honor-charts {
+    grid-template-columns: 1.2fr 1fr;
+  }
+}
+
+.chart-wrap,
+.goleadores-wrap {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.1rem;
+  box-shadow: var(--shadow);
+}
+
+.chart-wrap h3,
+.goleadores-wrap h3 {
+  margin: 0 0 0.85rem;
+  font-size: 0.95rem;
+  color: var(--navy);
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.chart-canvas-box {
+  position: relative;
+  height: 260px;
+}
+
+.goleadores-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.goleadores-table th,
+.goleadores-table td {
+  padding: 0.55rem 0.4rem;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+.goleadores-table th {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+
+.goleadores-table td:last-child,
+.goleadores-table th:last-child {
+  text-align: right;
+  font-weight: 700;
+}

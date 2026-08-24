@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "updatedAt": null,
+  "torneoFinalizado": false,
+  "equipos": [],
+  "fixture": [],
+  "resultados": [],
+  "jugadores": [],
+  "llave": {
+    "activa": false,
+    "tamaño": 16,
+    "partidos": []
+  },
+  "nota": "Exportá desde admin.html para publicar. Incluye llave eliminatoria cuando esté activa."
+}

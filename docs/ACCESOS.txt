@@ -1,0 +1,16 @@
+﻿COPA MAGISTERIAL 2026 — IES PASCO
+================================
+
+ACCESOS
+-------
+Público:     index.html
+Operadores:  admin.html
+             Contraseña: iespasco2026  (js/config.js → ADMIN_PASSWORD)
+Delegados:   delegado.html  (clave por equipo en hoja Delegados)
+
+BACKEND GOOGLE SHEETS
+---------------------
+Sheet: https://docs.google.com/spreadsheets/d/1LghhmNhPE6Kad1DC48IG0pBtFgIbMGGxWmOCdmFplIY/edit
+Apps Script: https://script.google.com/macros/s/AKfycbw5aWHZ8wYmO21CXgUmkh0ZVbCmHuxwdFuzWpxFIptIoZnDk5REG9MVkjClgxblg_Bg/exec
+
+Guías: docs/GOOGLE-SHEETS.md · docs/DELEGADOS.md · docs/GUIA-OPERADORES.md

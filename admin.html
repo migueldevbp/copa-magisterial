@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="theme-color" content="#0D1B3E" />
+  <title>Operadores · Copa Magisterial 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <link rel="icon" href="img/logo-ies-pasco.png" type="image/png" />
+</head>
+<body class="admin-body">
+  <!-- LOGIN -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-card">
+      <div class="login-logos">
+        <img src="img/logo-copa-magisterial.png" alt="Copa Magisterial" width="72" height="72" />
+        <img src="img/logo-ies-pasco.png" alt="IES Pasco" width="64" height="64" class="login-ies" />
+      </div>
+      <h1>Acceso operadores</h1>
+      <p class="login-sub">Carga de equipos, fixture, resultados y jugadores</p>
+      <form id="login-form" autocomplete="on">
+        <label>
+          Contraseña
+          <input type="password" id="login-password" name="password" required placeholder="Ingresá la clave" />
+        </label>
+        <p id="login-error" class="form-error hidden" role="alert">Contraseña incorrecta</p>
+        <button type="submit" class="btn-primary">Entrar</button>
+      </form>
+      <a class="login-back" href="index.html">← Volver al dashboard público</a>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="admin-app" class="admin-app hidden">
+    <header class="admin-header">
+      <div class="admin-header-inner">
+        <div class="admin-brand">
+          <img src="img/logo-copa-magisterial.png" alt="" width="44" height="44" />
+          <div>
+            <strong>Panel operadores</strong>
+            <span>Copa Magisterial 2026 · IES Pasco</span>
+          </div>
+        </div>
+        <div class="admin-header-actions">
+          <a href="index.html" class="btn-ghost-admin" target="_blank" rel="noopener">Ver público</a>
+          <a href="delegado.html" class="btn-ghost-admin" target="_blank" rel="noopener">Portal delegados</a>
+          <button type="button" id="btn-logout" class="btn-ghost-admin">Salir</button>
+        </div>
+      </div>
+      <nav class="admin-tabs" role="tablist">
+        <button type="button" class="admin-tab is-active" data-section="equipos">Equipos</button>
+        <button type="button" class="admin-tab" data-section="fixture">Fixture</button>
+        <button type="button" class="admin-tab" data-section="resultados">Resultados</button>
+        <button type="button" class="admin-tab" data-section="jugadores">Jugadores</button>
+        <button type="button" class="admin-tab" data-section="delegados">Delegados</button>
+        <button type="button" class="admin-tab" data-section="reclamos">Reclamos</button>
+        <button type="button" class="admin-tab" data-section="pendientes">Pendientes</button>
+        <button type="button" class="admin-tab" data-section="llave">Llave</button>
+        <button type="button" class="admin-tab" data-section="sheets">Google Sheets</button>
+        <button type="button" class="admin-tab" data-section="torneo">Torneo</button>
+        <button type="button" class="admin-tab" data-section="exportar">Exportar</button>
+      </nav>
+    </header>
+
+    <main class="admin-main">
+      <div id="admin-toast" class="admin-toast hidden" role="status"></div>
+
+      <!-- EQUIPOS -->
+      <section id="sec-equipos" class="admin-section is-active">
+        <div class="admin-toolbar">
+          <h2>Equipos</h2>
+          <button type="button" class="btn-primary" data-open-modal="equipo">+ Nuevo equipo</button>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table" id="table-equipos">
+            <thead>
+              <tr>
+                <th>ID</th><th>Nombre</th><th>Colegio</th><th>Grupo</th><th>Color</th><th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- FIXTURE -->
+      <section id="sec-fixture" class="admin-section">
+        <div class="admin-toolbar">
+          <h2>Fixture</h2>
+          <button type="button" class="btn-primary" data-open-modal="partido">+ Nuevo partido</button>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table" id="table-fixture">
+            <thead>
+              <tr>
+                <th>ID</th><th>Fecha</th><th>Hora</th><th>Equipo A</th><th>Equipo B</th><th>Cancha</th><th>Estado</th><th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- RESULTADOS -->
+      <section id="sec-resultados" class="admin-section">
+        <div class="admin-toolbar">
+          <h2>Resultados / actas</h2>
+          <button type="button" class="btn-primary" data-open-modal="resultado">+ Cargar resultado</button>
+        </div>
+        <p class="admin-help">Marcá el partido como <strong>Finalizado</strong> en Fixture para que sume en la tabla.</p>
+        <div class="table-wrap">
+          <table class="admin-table" id="table-resultados">
+            <thead>
+              <tr>
+                <th>Partido</th><th>Marcador</th><th>Aprobado</th><th>Goleadores</th><th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- JUGADORES -->
+      <section id="sec-jugadores" class="admin-section">
+        <div class="admin-toolbar">
+          <h2>Jugadores</h2>
+          <button type="button" class="btn-primary" data-open-modal="jugador">+ Nuevo jugador</button>
+        </div>
+        <div class="filters-row">
+          <select id="filtro-jug-equipo">
+            <option value="">Todos los equipos</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table" id="table-jugadores">
+            <thead>
+              <tr>
+                <th>Equipo</th><th>N°</th><th>Nombre</th><th>Posición</th><th>Goles</th><th>TA</th><th>TR</th><th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- DELEGADOS -->
+      <section id="sec-delegados" class="admin-section">
+        <div class="admin-toolbar">
+          <h2>Accesos delegados</h2>
+          <button type="button" class="btn-primary" data-open-modal="delegado">+ Acceso</button>
+        </div>
+        <p class="admin-help">Cada equipo recibe una clave. Entrá a <a href="delegado.html" target="_blank">delegado.html</a>. Las claves no se muestran en el dashboard público.</p>
+        <div class="table-wrap">
+          <table class="admin-table" id="table-delegados">
+            <thead><tr><th>Equipo</th><th>Delegado</th><th>Teléfono</th><th>Clave</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- RECLAMOS -->
+      <section id="sec-reclamos" class="admin-section">
+        <div class="admin-toolbar">
+          <h2>Reclamos</h2>
+        </div>
+        <p class="admin-help">Los delegados envían reclamos desde su portal. Acá respondés y cambiás el estado.</p>
+        <div class="table-wrap">
+          <table class="admin-table" id="table-reclamos">
+            <thead><tr><th>Fecha</th><th>Equipo</th><th>Asunto</th><th>Estado</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- PENDIENTES -->
+      <section id="sec-pendientes" class="admin-section">
+        <div class="admin-toolbar">
+          <h2>Pendientes / deudas</h2>
+          <button type="button" class="btn-primary" data-open-modal="pendiente">+ Pendiente</button>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table" id="table-pendientes">
+            <thead><tr><th>Equipo</th><th>Concepto</th><th>Monto</th><th>Vence</th><th>Estado</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- LLAVE -->
+      <section id="sec-llave" class="admin-section">
+        <div class="admin-toolbar">
+          <h2>Llave eliminatoria</h2>
+        </div>
+        <div class="admin-cards" style="margin-bottom:1rem">
+          <article class="admin-card">
+            <h3>Activar / generar llave</h3>
+            <p class="admin-help">Cuando el campeonato entra a instancias finales, generá la estructura y colocá los clasificados en la primera ronda. Los ganadores avanzan solos al cargar el marcador.</p>
+            <div class="btn-row">
+              <label>Tamaño
+                <select id="llave-size">
+                  <option value="16">16 equipos (octavos)</option>
+                  <option value="8">8 equipos (cuartos)</option>
+                </select>
+              </label>
+              <button type="button" id="btn-crear-llave" class="btn-primary">Generar llave vacía</button>
+              <button type="button" id="btn-propagar-llave" class="btn-secondary">Actualizar avance</button>
+              <button type="button" id="btn-desactivar-llave" class="btn-danger">Desactivar llave</button>
+            </div>
+            <p id="llave-meta" class="admin-meta">Llave inactiva.</p>
+          </article>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table" id="table-llave">
+            <thead>
+              <tr>
+                <th>ID</th><th>Ronda</th><th>Equipo A</th><th>Equipo B</th><th>Marcador</th><th>Estado</th><th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- GOOGLE SHEETS -->
+      <section id="sec-sheets" class="admin-section">
+        <div class="admin-toolbar">
+          <h2>Google Sheets</h2>
+        </div>
+        <div class="admin-cards">
+          <article class="admin-card">
+            <h3>Estado de conexión</h3>
+            <p id="sheets-status" class="admin-meta">Revisando configuración…</p>
+            <div class="btn-row">
+              <button type="button" id="btn-sheets-ping" class="btn-secondary">Probar Apps Script</button>
+              <button type="button" id="btn-sheets-setup" class="btn-secondary">Preparar hojas</button>
+            </div>
+          </article>
+          <article class="admin-card">
+            <h3>Sincronizar</h3>
+            <p class="admin-help">
+              <strong>Bajar</strong> trae los datos del Sheet al panel.<br />
+              <strong>Subir</strong> publica lo que tenés acá hacia Google Sheets (lo ve toda la comunidad).
+            </p>
+            <div class="btn-row">
+              <button type="button" id="btn-sheets-pull" class="btn-secondary">↓ Bajar desde Sheets</button>
+              <button type="button" id="btn-sheets-push" class="btn-primary">↑ Subir a Sheets</button>
+            </div>
+            <p id="sheets-sync-msg" class="admin-meta"></p>
+          </article>
+          <article class="admin-card" style="grid-column:1/-1">
+            <h3>Configuración en <code>js/config.js</code></h3>
+            <ol class="admin-steps">
+              <li><code>GOOGLE_SHEET_ID</code> — ID del spreadsheet</li>
+              <li><code>GOOGLE_API_KEY</code> — API Key (lectura pública)</li>
+              <li><code>APPS_SCRIPT_URL</code> — URL de la app web</li>
+              <li><code>APPS_SCRIPT_TOKEN</code> — mismo token que en <code>apps-script/Codigo.gs</code></li>
+            </ol>
+            <p class="admin-help">Guía completa: <code>docs/GOOGLE-SHEETS.md</code></p>
+          </article>
+        </div>
+      </section>
+
+      <!-- TORNEO -->
+      <section id="sec-torneo" class="admin-section">
+        <div class="admin-toolbar">
+          <h2>Configuración del torneo</h2>
+        </div>
+        <div class="admin-cards">
+          <article class="admin-card">
+            <h3>Estado</h3>
+            <label class="switch-row">
+              <input type="checkbox" id="chk-finalizado" />
+              <span>Torneo finalizado (habilita Cuadro de Honor público)</span>
+            </label>
+            <p id="store-meta" class="admin-meta">Sin datos guardados aún.</p>
+            <div class="btn-row">
+              <button type="button" id="btn-save-torneo" class="btn-primary">Guardar estado</button>
+              <button type="button" id="btn-seed-demo" class="btn-secondary">Cargar datos de ejemplo</button>
+              <button type="button" id="btn-clear-data" class="btn-danger">Borrar todos los datos</button>
+            </div>
+          </article>
+          <article class="admin-card">
+            <h3>Cómo publicar para todos</h3>
+            <ol class="admin-steps">
+              <li>Cargá equipos, fixture, resultados y jugadores aquí.</li>
+              <li>Andá a <strong>Exportar</strong> → descargá <code>torneo.json</code>.</li>
+              <li>Reemplazá el archivo <code>data/torneo.json</code> del proyecto.</li>
+              <li>Subí/publicá el sitio (GitHub Pages) para que la comunidad vea los datos.</li>
+            </ol>
+            <p class="admin-help">Google Sheets se conectará después. Mientras tanto este flujo ya sirve para el evento.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- EXPORTAR -->
+      <section id="sec-exportar" class="admin-section">
+        <div class="admin-toolbar">
+          <h2>Exportar / Importar</h2>
+        </div>
+        <div class="admin-cards">
+          <article class="admin-card">
+            <h3>Exportar</h3>
+            <p class="admin-help">JSON para publicar en el sitio. CSV listo para pegar luego en Google Sheets.</p>
+            <div class="btn-row">
+              <button type="button" id="btn-export-json" class="btn-primary">Descargar torneo.json</button>
+              <button type="button" id="btn-export-csv" class="btn-secondary">Descargar CSV (5 hojas)</button>
+            </div>
+          </article>
+          <article class="admin-card">
+            <h3>Importar JSON</h3>
+            <p class="admin-help">Restaurá un respaldo o datos de otro operador.</p>
+            <input type="file" id="import-json" accept="application/json,.json" />
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODALES -->
+  <dialog id="modal" class="admin-modal">
+    <form method="dialog" id="modal-form" class="modal-form">
+      <header class="modal-header">
+        <h3 id="modal-title">Editar</h3>
+        <button type="button" id="modal-close" class="modal-close" aria-label="Cerrar">×</button>
+      </header>
+      <div id="modal-fields" class="modal-fields"></div>
+      <footer class="modal-footer">
+        <button type="button" id="modal-cancel" class="btn-secondary">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <script src="js/config.js"></script>
+  <script src="js/llave.js"></script>
+  <script src="js/data-store.js"></script>
+  <script src="js/google-sheets.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

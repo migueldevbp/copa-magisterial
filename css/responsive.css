@@ -1,0 +1,152 @@
+/* =========================================================
+   Responsive — breakpoints: 320 / 768 / 1024 / 1440
+   ========================================================= */
+
+/* Mobile first base already in styles.css (~320px+) */
+
+@media (max-width: 479px) {
+  .brand-logo-ies {
+    display: none;
+  }
+
+  .brand-name {
+    font-size: 0.82rem;
+  }
+
+  .brand-year {
+    font-size: 0.65rem;
+  }
+}
+
+@media (min-width: 480px) {
+  .brand-name {
+    font-size: 1.05rem;
+  }
+
+  .partido-card {
+    grid-template-columns: 1fr auto;
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --header-h: 120px;
+  }
+
+  .header-inner {
+    padding: 0.9rem 1.25rem;
+  }
+
+  .brand-logo {
+    width: 56px;
+    height: 56px;
+  }
+
+  .brand-logo-copa {
+    width: 60px;
+    height: 60px;
+  }
+
+  .brand-logo-ies {
+    width: 52px;
+    height: 52px;
+  }
+
+  .brand-name {
+    font-size: 1.2rem;
+  }
+
+  .brand-year {
+    font-size: 0.8rem;
+  }
+
+  .sync-indicator {
+    font-size: 0.8rem;
+  }
+
+  .tab {
+    font-size: 0.9rem;
+    padding: 0.85rem 1rem;
+  }
+
+  .main {
+    padding: 1.5rem 1.25rem 3rem;
+  }
+
+  .panel-title {
+    font-size: 1.55rem;
+  }
+
+  .standings {
+    font-size: 0.9rem;
+  }
+
+  .standings th,
+  .standings td {
+    padding: 0.75rem 0.55rem;
+  }
+
+  .partidos-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .detalle-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .detalle-goles {
+    font-size: 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .main {
+    padding-top: 1.75rem;
+  }
+
+  .filters {
+    gap: 0.65rem;
+  }
+
+  .filter select,
+  .filter input {
+    min-width: 170px;
+  }
+
+  .partidos-grid {
+    gap: 1rem;
+  }
+
+  .partido-card {
+    padding: 1.1rem 1.15rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --max: 1280px;
+  }
+
+  .panel-title {
+    font-size: 1.7rem;
+  }
+
+  .standings {
+    font-size: 0.95rem;
+  }
+}
+
+/* Preferencias de movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .panel {
+    animation: none;
+  }
+}

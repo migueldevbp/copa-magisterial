@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="theme-color" content="#0D1B3E" />
+  <title>Delegados · Copa Magisterial 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/delegado.css" />
+  <link rel="icon" href="img/logo-ies-pasco.png" type="image/png" />
+</head>
+<body class="delegado-body">
+  <div id="login-view" class="del-login">
+    <div class="del-card">
+      <div class="del-logos">
+        <img src="img/logo-copa-magisterial.png" alt="" width="72" height="72" />
+        <img src="img/logo-ies-pasco.png" alt="IES Pasco" width="56" height="56" class="del-ies" />
+      </div>
+      <h1>Portal delegados</h1>
+      <p class="del-sub">Acceso solo a la información de tu equipo</p>
+      <form id="del-login-form">
+        <label>Equipo
+          <select id="del-equipo" required>
+            <option value="">Cargando equipos…</option>
+          </select>
+        </label>
+        <label>Clave de delegado
+          <input type="password" id="del-clave" required placeholder="Clave asignada por organización" autocomplete="current-password" />
+        </label>
+        <p id="del-login-error" class="form-error hidden"></p>
+        <button type="submit" class="btn-primary">Entrar</button>
+      </form>
+      <div class="del-links">
+        <a href="index.html">← Dashboard público</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-view" class="del-app hidden">
+    <header class="del-header">
+      <div class="del-header-inner">
+        <div>
+          <strong id="del-equipo-nombre">Equipo</strong>
+          <span id="del-delegado-nombre" class="del-muted"></span>
+        </div>
+        <div class="del-header-actions">
+          <button type="button" id="del-refresh" class="btn-ghost-admin">Actualizar</button>
+          <button type="button" id="del-logout" class="btn-ghost-admin">Salir</button>
+        </div>
+      </div>
+      <nav class="del-tabs">
+        <button type="button" class="del-tab is-active" data-sec="resumen">Resumen</button>
+        <button type="button" class="del-tab" data-sec="plantel">Plantel / Tarjetas</button>
+        <button type="button" class="del-tab" data-sec="partidos">Partidos</button>
+        <button type="button" class="del-tab" data-sec="pendientes">Pendientes</button>
+        <button type="button" class="del-tab" data-sec="reclamos">Reclamos</button>
+        <button type="button" class="del-tab" data-sec="torneo">Torneo</button>
+      </nav>
+    </header>
+
+    <main class="del-main">
+      <section id="sec-resumen" class="del-sec is-active"></section>
+      <section id="sec-plantel" class="del-sec"></section>
+      <section id="sec-partidos" class="del-sec"></section>
+      <section id="sec-pendientes" class="del-sec"></section>
+      <section id="sec-reclamos" class="del-sec"></section>
+      <section id="sec-torneo" class="del-sec"></section>
+    </main>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/google-sheets.js"></script>
+  <script src="js/delegado.js"></script>
+</body>
+</html>

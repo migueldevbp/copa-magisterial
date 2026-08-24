@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Dashboard público en tiempo real — Copa Magisterial 2026 · IES Pasco" />
+  <meta name="theme-color" content="#0D1B3E" />
+  <title>Copa Magisterial 2026 · IES Pasco</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+  <link rel="stylesheet" href="css/cuadro-honor.css" />
+  <link rel="stylesheet" href="css/llave.css" />
+  <link rel="icon" href="img/logo-ies-pasco.png" type="image/png" />
+</head>
+<body>
+  <div id="loading-overlay" class="loading-overlay" aria-live="polite" aria-busy="true">
+    <div class="spinner" role="status"></div>
+    <p>Cargando Copa Magisterial…</p>
+  </div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#tabla" aria-label="Copa Magisterial 2026 — IES Pasco">
+        <img src="img/logo-copa-magisterial.png" alt="Copa Magisterial 2026" width="56" height="56" class="brand-logo brand-logo-copa" />
+        <div class="brand-text">
+          <span class="brand-name">Copa Magisterial</span>
+          <span class="brand-year">2026 · IES Pasco</span>
+        </div>
+        <img src="img/logo-ies-pasco.png" alt="IES Pasco" width="48" height="48" class="brand-logo brand-logo-ies" />
+      </a>
+
+      <div class="header-status">
+        <span id="sync-indicator" class="sync-indicator" title="Estado de sincronización">
+          <img src="img/icono-actualizar.svg" alt="" width="16" height="16" class="sync-icon" />
+          <span id="sync-text">Conectando…</span>
+        </span>
+        <span id="demo-badge" class="demo-badge hidden">Modo demo</span>
+      </div>
+    </div>
+
+    <nav class="tabs" role="tablist" aria-label="Secciones del torneo">
+      <button type="button" class="tab is-active" role="tab" aria-selected="true" data-tab="tabla">Tabla</button>
+      <button type="button" class="tab" role="tab" aria-selected="false" data-tab="fixture">Fixture</button>
+      <button type="button" class="tab" role="tab" aria-selected="false" data-tab="llave">Llave</button>
+      <button type="button" class="tab" role="tab" aria-selected="false" data-tab="detalles">Detalles</button>
+      <button type="button" class="tab" role="tab" aria-selected="false" data-tab="honor">Honor</button>
+    </nav>
+  </header>
+
+  <main class="main">
+    <!-- TABLA -->
+    <section id="panel-tabla" class="panel is-active" role="tabpanel" aria-label="Tabla de posiciones">
+      <div class="panel-toolbar">
+        <h1 class="panel-title">Tabla de posiciones</h1>
+        <div class="filters">
+          <label class="filter">
+            <span class="sr-only">Grupo</span>
+            <select id="filtro-grupo" aria-label="Filtrar por grupo">
+              <option value="">Todos los grupos</option>
+            </select>
+          </label>
+          <label class="filter filter-search">
+            <span class="sr-only">Buscar equipo</span>
+            <input type="search" id="buscar-equipo" placeholder="Buscar equipo…" autocomplete="off" />
+          </label>
+        </div>
+      </div>
+      <div id="tabla-container" class="tabla-container">
+        <p class="empty-state">Cargando posiciones…</p>
+      </div>
+      <p class="legend">
+        <span class="legend-item legend-lider">Líder</span>
+        <span class="legend-item legend-medio">Zona media</span>
+        <span class="legend-item legend-riesgo">Zona de riesgo</span>
+      </p>
+    </section>
+
+    <!-- FIXTURE -->
+    <section id="panel-fixture" class="panel" role="tabpanel" aria-label="Fixture" hidden>
+      <div class="panel-toolbar">
+        <h1 class="panel-title">Fixture</h1>
+        <div class="filters">
+          <label class="filter">
+            <span class="sr-only">Fecha</span>
+            <select id="filtro-fecha" aria-label="Filtrar por fecha">
+              <option value="">Todas las fechas</option>
+            </select>
+          </label>
+          <label class="filter">
+            <span class="sr-only">Estado</span>
+            <select id="filtro-estado" aria-label="Filtrar por estado">
+              <option value="">Todos los estados</option>
+              <option value="Próximo">Próximo</option>
+              <option value="En Juego">En Juego</option>
+              <option value="Finalizado">Finalizado</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div id="fixture-container" class="fixture-container">
+        <p class="empty-state">Cargando partidos…</p>
+      </div>
+    </section>
+
+    <!-- LLAVE -->
+    <section id="panel-llave" class="panel" role="tabpanel" aria-label="Llave eliminatoria" hidden>
+      <div class="panel-toolbar">
+        <h1 class="panel-title">Llave eliminatoria</h1>
+      </div>
+      <div id="llave-container" class="llave-container">
+        <p class="empty-state">Cargando llave…</p>
+      </div>
+    </section>
+
+    <!-- DETALLES -->
+    <section id="panel-detalles" class="panel" role="tabpanel" aria-label="Detalles del partido" hidden>
+      <div class="panel-toolbar">
+        <h1 class="panel-title">Detalle del partido</h1>
+        <button type="button" id="btn-volver-fixture" class="btn-ghost">← Volver al fixture</button>
+      </div>
+      <div id="detalle-container" class="detalle-container">
+        <p class="empty-state">Seleccioná un partido en el Fixture para ver alineaciones, goles y tarjetas.</p>
+      </div>
+    </section>
+
+    <!-- CUADRO DE HONOR -->
+    <section id="panel-honor" class="panel" role="tabpanel" aria-label="Cuadro de honor" hidden>
+      <div class="panel-toolbar">
+        <h1 class="panel-title">Cuadro de honor</h1>
+      </div>
+      <div id="honor-container" class="honor-container">
+        <p class="empty-state">El cuadro de honor se habilita al finalizar el torneo.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-brand">
+      <img src="img/logo-copa-magisterial.png" alt="" width="64" height="64" class="footer-logo" loading="lazy" />
+      <img src="img/logo-ies-pasco.png" alt="IES Pasco" width="56" height="56" class="footer-logo footer-logo-ies" loading="lazy" />
+    </div>
+    <p class="footer-title">Copa Magisterial 2026</p>
+    <p class="footer-institution">IES Pasco · Por una educación de calidad</p>
+    <p class="footer-note">Acceso público · IES Pasco</p>
+    <p id="last-update" class="last-update">Última actualización: —</p>
+    <p class="footer-admin">
+      <a href="admin.html">Operadores</a>
+      ·
+      <a href="delegado.html">Delegados</a>
+    </p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+  <script src="js/config.js" defer></script>
+  <script src="js/llave.js" defer></script>
+  <script src="js/data-store.js" defer></script>
+  <script src="js/google-sheets.js" defer></script>
+  <script src="js/tabla-posiciones.js" defer></script>
+  <script src="js/fixture.js" defer></script>
+  <script src="js/charts.js" defer></script>
+  <script src="js/cuadro-honor.js" defer></script>
+  <script src="js/app.js" defer></script>
+</body>
+</html>
