@@ -78,6 +78,15 @@
       return;
     }
     try {
+      // Asegura hojas Delegados/Reclamos/Pendientes sin que el operador lo haga a mano
+      if (GoogleSheets.isWriteConfigured()) {
+        try {
+          await GoogleSheets.setupViaScript();
+        } catch (err) {
+          console.warn('setup:', err);
+        }
+      }
+
       let data = null;
       if (GoogleSheets.isConfigured()) {
         try {
@@ -93,9 +102,15 @@
             ...(data || {}),
             ...full,
             equipos: full.equipos?.length ? full.equipos : data?.equipos || [],
-            delegados: full.delegados || data?.delegados || [],
-            reclamos: full.reclamos || data?.reclamos || [],
-            pendientes: full.pendientes || data?.pendientes || [],
+            fixture: full.fixture?.length ? full.fixture : data?.fixture || [],
+            resultados: full.resultados?.length ? full.resultados : data?.resultados || [],
+            jugadores: full.jugadores?.length ? full.jugadores : data?.jugadores || [],
+            llave: full.llave?.partidos?.length ? full.llave : data?.llave || full.llave,
+            delegados: full.delegados?.length ? full.delegados : data?.delegados || [],
+            reclamos: full.reclamos?.length ? full.reclamos : data?.reclamos || [],
+            pendientes: full.pendientes?.length ? full.pendientes : data?.pendientes || [],
+            torneoFinalizado:
+              full.torneoFinalizado != null ? full.torneoFinalizado : data?.torneoFinalizado,
           };
         } catch (err) {
           console.warn('Pull script:', err);
@@ -331,7 +346,7 @@
     const tbody = $('#table-delegados tbody');
     if (!tbody) return;
     if (!store.equipos.length) {
-      tbody.innerHTML = `<tr><td colspan="5" class="empty-admin">Primero bajá los equipos: <strong>Google Sheets → ↓ Bajar desde Sheets</strong></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" class="empty-admin">Sin jugadores. Primero cargá equipos en la pestaña Equipos.</td></tr>`;
       return;
     }
     if (!store.delegados?.length) {
@@ -648,7 +663,7 @@
         fields.innerHTML = `
           <p class="admin-help" style="color:#c62828">
             No hay equipos en el panel.<br />
-            Andá a <strong>Google Sheets → ↓ Bajar desde Sheets</strong> (o cargá equipos en la pestaña Equipos) y volvé a intentar.
+            Andá a la pestaña <strong>Equipos</strong>, agregá al menos uno y volvé a intentar.
           </p>`;
         if (typeof modal.showModal === 'function') modal.showModal();
         else modal.setAttribute('open', '');

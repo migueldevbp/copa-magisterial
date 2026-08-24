@@ -138,6 +138,7 @@
       equipos: state.data.equipos,
       jugadores: state.data.jugadores,
       tabla: state.tabla,
+      torneoFinalizado: Boolean(state.data.torneoFinalizado ?? CONFIG.TORNEO_FINALIZADO),
     });
   }
 

@@ -114,7 +114,8 @@ const CuadroHonor = (() => {
   function generarCuadroHonor(container, ctx, forzarPreview = false) {
     if (!container) return;
     const { equipos, jugadores, tabla } = ctx;
-    const finalizado = CONFIG.TORNEO_FINALIZADO || forzarPreview;
+    const finalizado =
+      Boolean(ctx.torneoFinalizado ?? CONFIG.TORNEO_FINALIZADO) || forzarPreview;
 
     if (!finalizado) {
       container.innerHTML = `
@@ -151,7 +152,7 @@ const CuadroHonor = (() => {
     };
 
     container.innerHTML = `
-      ${forzarPreview && !CONFIG.TORNEO_FINALIZADO ? '<p class="honor-preview-note">Vista previa — el torneo aún no está marcado como finalizado</p>' : ''}
+      ${forzarPreview && !(ctx.torneoFinalizado ?? CONFIG.TORNEO_FINALIZADO) ? '<p class="honor-preview-note">Vista previa — el torneo aún no está marcado como finalizado</p>' : ''}
       <div class="podio">
         ${puesto(subcampeon, 'podio-plata', '🥈', 'Subcampeón')}
         ${puesto(campeon, 'podio-oro', '🥇', 'Campeón')}

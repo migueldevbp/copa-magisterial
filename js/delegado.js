@@ -54,7 +54,7 @@
         }));
       }
       if (!equipos.length) {
-        sel.innerHTML = '<option value="">Sin equipos — subí datos desde admin</option>';
+        sel.innerHTML = '<option value="">Sin equipos — el operador debe cargarlos en admin</option>';
         return;
       }
       sel.innerHTML =

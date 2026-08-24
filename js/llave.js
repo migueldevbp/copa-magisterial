@@ -64,13 +64,15 @@ const Llave = (() => {
   }
 
   function mapPartido(p) {
-    const golesA = p.golesA === '' || p.golesA === null || p.golesA === undefined ? null : Number(p.golesA);
-    const golesB = p.golesB === '' || p.golesB === null || p.golesB === undefined ? null : Number(p.golesB);
+    const rawA = p.golesA ?? p.Goles_A;
+    const rawB = p.golesB ?? p.Goles_B;
+    const golesA = rawA === '' || rawA === null || rawA === undefined ? null : Number(rawA);
+    const golesB = rawB === '' || rawB === null || rawB === undefined ? null : Number(rawB);
     return {
-      id: String(p.id ?? '').trim(),
-      ronda: String(p.ronda ?? 'octavos').trim(),
-      orden: Number(p.orden ?? 0) || 0,
-      lado: String(p.lado ?? 'centro').trim(),
+      id: String(p.id ?? p.ID ?? '').trim(),
+      ronda: String(p.ronda ?? p.Ronda ?? 'octavos').trim(),
+      orden: Number(p.orden ?? p.Orden ?? 0) || 0,
+      lado: String(p.lado ?? p.Lado ?? 'centro').trim(),
       equipoAId: String(p.equipoAId ?? p.Equipo_A_ID ?? '').trim(),
       equipoBId: String(p.equipoBId ?? p.Equipo_B_ID ?? '').trim(),
       golesA: Number.isFinite(golesA) ? golesA : null,

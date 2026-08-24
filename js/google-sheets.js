@@ -60,15 +60,23 @@ const GoogleSheets = (() => {
   }
 
   function normalizeResultado(r) {
+    const aprobadoRaw = r.Aprobado ?? r.aprobado;
+    let aprobado = true;
+    if (aprobadoRaw !== undefined && aprobadoRaw !== null && String(aprobadoRaw).trim() !== '') {
+      aprobado =
+        aprobadoRaw === true ||
+        String(aprobadoRaw).toUpperCase() === 'SI' ||
+        String(aprobadoRaw) === 'true';
+    }
     return {
-      partidoId: String(r.Partido_ID || r.PartidoId || r.ID || ''),
-      golesA: parseInt(r.Goles_A || r.GolesA || '0', 10) || 0,
-      golesB: parseInt(r.Goles_B || r.GolesB || '0', 10) || 0,
-      aprobado: String(r.Aprobado || '').toUpperCase() === 'SI',
-      goleadoresA: r.Goleadores_A || r.GoleadoresA || '',
-      goleadoresB: r.Goleadores_B || r.GoleadoresB || '',
-      tarjetasA: r.Tarjetas_A || r.TarjetasA || '',
-      tarjetasB: r.Tarjetas_B || r.TarjetasB || '',
+      partidoId: String(r.Partido_ID || r.PartidoId || r.partidoId || r.ID || ''),
+      golesA: parseInt(r.Goles_A || r.GolesA || r.golesA || '0', 10) || 0,
+      golesB: parseInt(r.Goles_B || r.GolesB || r.golesB || '0', 10) || 0,
+      aprobado,
+      goleadoresA: r.Goleadores_A || r.GoleadoresA || r.goleadoresA || '',
+      goleadoresB: r.Goleadores_B || r.GoleadoresB || r.goleadoresB || '',
+      tarjetasA: r.Tarjetas_A || r.TarjetasA || r.tarjetasA || '',
+      tarjetasB: r.Tarjetas_B || r.TarjetasB || r.tarjetasB || '',
     };
   }
 
@@ -155,17 +163,21 @@ const GoogleSheets = (() => {
       String(cfgMap.TORNEO_FINALIZADO || '').toUpperCase() === 'SI';
 
     let llave;
-    if (raw.llave && raw.llave.partidos) {
-      llave =
-        typeof Llave !== 'undefined' ? Llave.normalize(raw.llave) : raw.llave;
-      if (cfgMap.LLAVE_ACTIVA) {
-        llave.activa = String(cfgMap.LLAVE_ACTIVA).toUpperCase() === 'SI';
-      }
+    if (raw.llave && Array.isArray(raw.llave.partidos)) {
+      // Script / admin: partidos pueden venir con headers de Sheet (ID, Ronda, …)
+      const mapCfg = {
+        ...cfgMap,
+        LLAVE_ACTIVA:
+          cfgMap.LLAVE_ACTIVA ||
+          (raw.llave.activa ? 'SI' : 'NO'),
+        LLAVE_TAMANO: String(raw.llave.tamaño || cfgMap.LLAVE_TAMANO || 16),
+      };
+      llave = parseLlaveFromSheets(raw.llave.partidos, mapCfg);
     } else {
       llave = parseLlaveFromSheets(raw.llaveRows || raw.llave || [], cfgMap);
     }
 
-    if (torneoFinalizado) CONFIG.TORNEO_FINALIZADO = true;
+    CONFIG.TORNEO_FINALIZADO = Boolean(torneoFinalizado);
 
     const reclamos = Array.isArray(raw.reclamos)
       ? raw.reclamos.map((r) =>
@@ -200,38 +212,61 @@ const GoogleSheets = (() => {
 
   async function fetchViaApi() {
     const names = sheetNames();
-    const ranges = [
+    const wanted = [
       names.equipos,
       names.fixture,
       names.resultados,
       names.jugadores,
       names.llave,
       names.config,
-    ]
-      .map((n) => encodeURIComponent(n))
-      .join('&ranges=');
+    ];
 
-    const url =
-      `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.GOOGLE_SHEET_ID}` +
-      `/values:batchGet?ranges=${ranges}&key=${CONFIG.GOOGLE_API_KEY}`;
-
-    const res = await fetch(url);
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error?.message || `Sheets API error ${res.status}`);
+    async function batchGet(ranges) {
+      const q = ranges.map((n) => encodeURIComponent(n)).join('&ranges=');
+      const url =
+        `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.GOOGLE_SHEET_ID}` +
+        `/values:batchGet?ranges=${q}&key=${CONFIG.GOOGLE_API_KEY}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || `Sheets API error ${res.status}`);
+      }
+      return (await res.json()).valueRanges || [];
     }
-    const data = await res.json();
-    const valueRanges = data.valueRanges || [];
 
-    return parsePayload({
-      equipos: rowsToObjects(valueRanges[0]?.values),
-      fixture: rowsToObjects(valueRanges[1]?.values),
-      resultados: rowsToObjects(valueRanges[2]?.values),
-      jugadores: rowsToObjects(valueRanges[3]?.values),
-      llaveRows: rowsToObjects(valueRanges[4]?.values),
-      config: rowsToObjects(valueRanges[5]?.values),
-      source: 'sheets',
-    });
+    let valueRanges;
+    try {
+      valueRanges = await batchGet(wanted);
+    } catch (err) {
+      // Si falta alguna hoja, leer hoja por hoja para no tumbar el dashboard
+      valueRanges = await Promise.all(
+        wanted.map(async (name) => {
+          try {
+            const url =
+              `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.GOOGLE_SHEET_ID}` +
+              `/values/${encodeURIComponent(name)}?key=${CONFIG.GOOGLE_API_KEY}`;
+            const res = await fetch(url);
+            if (!res.ok) return { values: [] };
+            return await res.json();
+          } catch {
+            return { values: [] };
+          }
+        })
+      );
+    }
+
+    return parsePayload(
+      {
+        equipos: rowsToObjects(valueRanges[0]?.values),
+        fixture: rowsToObjects(valueRanges[1]?.values),
+        resultados: rowsToObjects(valueRanges[2]?.values),
+        jugadores: rowsToObjects(valueRanges[3]?.values),
+        llaveRows: rowsToObjects(valueRanges[4]?.values),
+        config: rowsToObjects(valueRanges[5]?.values),
+        source: 'sheets',
+      },
+      { allowEmpty: true }
+    );
   }
 
   function scriptUrl(action) {
@@ -251,8 +286,56 @@ const GoogleSheets = (() => {
   }
 
   async function pullFromScript() {
-    if (!isWriteConfigured()) throw new Error('Configurá APPS_SCRIPT_URL y APPS_SCRIPT_TOKEN');
-    // POST read con token → incluye claves de delegados (solo admin)
+    if (!isWriteConfigured()) throw new Error('Falta configurar el backend de escritura');
+
+    async function parseRead(raw) {
+      if (raw.ok === false) throw new Error(raw.error || 'Error al leer backend');
+      // Si el POST se convirtió en GET, llega el bundle público sin secrets
+      if (!raw.equipos && !raw.ok) throw new Error('Respuesta inválida del servidor');
+      return parsePayload(
+        {
+          equipos: raw.equipos,
+          fixture: raw.fixture,
+          resultados: raw.resultados,
+          jugadores: raw.jugadores,
+          llave: raw.llave,
+          reclamos: raw.reclamos,
+          pendientes: raw.pendientes,
+          delegados: raw.delegados,
+          torneoFinalizado: raw.torneoFinalizado,
+          configMap: {
+            TORNEO_FINALIZADO: raw.torneoFinalizado ? 'SI' : 'NO',
+            LLAVE_ACTIVA: raw.llave?.activa ? 'SI' : 'NO',
+            LLAVE_TAMANO: String(raw.llave?.tamaño || 16),
+          },
+          source: 'sheets',
+        },
+        { allowEmpty: true }
+      );
+    }
+
+    // GET read con token (más fiable que POST ante redirects)
+    const q = new URLSearchParams({
+      action: 'read',
+      token: CONFIG.APPS_SCRIPT_TOKEN,
+    });
+    try {
+      const resGet = await fetch(`${CONFIG.APPS_SCRIPT_URL}?${q.toString()}`, {
+        method: 'GET',
+        redirect: 'follow',
+      });
+      const rawGet = await resGet.json().catch(() => ({}));
+      // doGet no tenía read con token en scripts viejos: si no trae delegados, seguimos a POST
+      if (rawGet.ok !== false && (rawGet.delegados || rawGet.equipos)) {
+        const parsed = await parseRead(rawGet);
+        if (rawGet.delegados || parsed.delegados?.length || !CONFIG.APPS_SCRIPT_TOKEN) {
+          return parsed;
+        }
+      }
+    } catch {
+      /* intentar POST */
+    }
+
     const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
       method: 'POST',
       redirect: 'follow',
@@ -263,28 +346,7 @@ const GoogleSheets = (() => {
       }),
     });
     const raw = await res.json();
-    if (raw.ok === false) throw new Error(raw.error || 'Error al leer Apps Script');
-
-    return parsePayload(
-      {
-        equipos: raw.equipos,
-        fixture: raw.fixture,
-        resultados: raw.resultados,
-        jugadores: raw.jugadores,
-        llave: raw.llave,
-        reclamos: raw.reclamos,
-        pendientes: raw.pendientes,
-        delegados: raw.delegados,
-        torneoFinalizado: raw.torneoFinalizado,
-        configMap: {
-          TORNEO_FINALIZADO: raw.torneoFinalizado ? 'SI' : 'NO',
-          LLAVE_ACTIVA: raw.llave?.activa ? 'SI' : 'NO',
-          LLAVE_TAMANO: String(raw.llave?.tamaño || 16),
-        },
-        source: 'sheets',
-      },
-      { allowEmpty: true }
-    );
+    return parseRead(raw);
   }
 
   async function pushToScript(bundle) {
@@ -337,12 +399,9 @@ const GoogleSheets = (() => {
         let msg = (data && data.error) || 'Error en portal delegado';
         if (/Acción desconocida|Token inválido/i.test(msg)) {
           msg =
-            'Apps Script desactualizado (Token inválido). ' +
-            'En script.google.com pegá Codigo.gs → Implementar → Administrar implementaciones → ' +
-            'lápiz → Nueva versión → Implementar. Luego en admin: Probar Apps Script (debe decir versión …delegados-v3).';
+            'Servidor desactualizado. Pedile a organización que actualice Apps Script (Codigo.gs → Nueva versión).';
         } else if (/Clave incorrecta|sin acceso/i.test(msg)) {
-          msg +=
-            ' · En admin: Preparar hojas → guardar acceso Delegados → ↑ Subir a Sheets. En el Sheet debe existir la pestaña Delegados.';
+          msg += ' · Pedí la clave al operador o revisá que el acceso esté creado en admin → Delegados.';
         }
         throw new Error(msg);
       }
@@ -354,53 +413,55 @@ const GoogleSheets = (() => {
       return null;
     }
 
-    // GET primero: el POST de Apps Script a menudo pierde el body (Token inválido / lectura pública)
-    const q = new URLSearchParams({
-      action,
-      equipoId,
-      clave,
-      asunto: String(payload.asunto || ''),
-      detalle: String(payload.detalle || ''),
-    });
-    let res;
-    try {
-      res = await fetch(`${CONFIG.APPS_SCRIPT_URL}?${q.toString()}`, {
+    async function viaGet() {
+      const q = new URLSearchParams({
+        action,
+        equipoId,
+        clave,
+        asunto: String(payload.asunto || ''),
+        detalle: String(payload.detalle || ''),
+      });
+      const res = await fetch(`${CONFIG.APPS_SCRIPT_URL}?${q.toString()}`, {
         method: 'GET',
         redirect: 'follow',
       });
-    } catch (err) {
-      throw new Error(`No se pudo conectar con el servidor.${fileHint}`);
-    }
-    let data = await res.json().catch(() => ({}));
-    let okData = interpret(data);
-    if (okData) return okData;
-
-    // Si GET devolvió el bundle público (script viejo), el error es de deploy
-    if (data && data.ok && Array.isArray(data.equipos) && !data.equipo) {
-      throw new Error(
-        'Apps Script sin login de delegados. Pegá Codigo.gs completo y desplegá Nueva versión. ' +
-          'En admin → Probar Apps Script debe mostrar: 2026-08-24-delegados-v3'
-      );
+      return res.json().catch(() => ({}));
     }
 
-    // Reintento POST por si el GET no estaba habilitado pero el POST sí
-    try {
-      res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+    async function viaPost() {
+      const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
         method: 'POST',
         redirect: 'follow',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action, ...payload, equipoId, clave }),
       });
+      return res.json().catch(() => ({}));
+    }
+
+    try {
+      // Reclamos: POST primero (textos largos no caben en URL)
+      // Login/data: GET primero (más fiable con redirects de Apps Script)
+      const first = action === 'reclamo_crear' ? await viaPost() : await viaGet();
+      let okData = interpret(first);
+      if (okData) return okData;
+
+      if (first && first.ok && Array.isArray(first.equipos) && !first.equipo && action !== 'reclamo_crear') {
+        throw new Error(
+          'Apps Script sin login de delegados. Actualizá Codigo.gs y desplegá Nueva versión (delegados-v3).'
+        );
+      }
+
+      const second = action === 'reclamo_crear' ? await viaGet() : await viaPost();
+      okData = interpret(second);
+      if (okData) return okData;
+      if (second && second.ok === false) interpret(second);
+      throw new Error('No se pudo completar la acción en el portal.' + fileHint);
     } catch (err) {
+      if (err && err.message && !/conectar|fetch/i.test(err.message) && err.message !== 'Failed to fetch') {
+        throw err;
+      }
       throw new Error(`No se pudo conectar con el servidor.${fileHint}`);
     }
-    data = await res.json().catch(() => ({}));
-    okData = interpret(data);
-    if (okData) return okData;
-    if (data && data.ok === false) interpret(data); // lanza con mensaje claro
-    throw new Error(
-      'No se pudo iniciar sesión. Actualizá y redesplegá Codigo.gs (versión delegados-v3).' + fileHint
-    );
   }
 
   async function setupViaScript() {
@@ -566,13 +627,13 @@ const GoogleSheets = (() => {
       } else if (typeof DataStore !== 'undefined' && DataStore.hasLocalData()) {
         data = DataStore.toPublicPayload(DataStore.loadLocal());
         source = 'local';
-        if (data.torneoFinalizado) CONFIG.TORNEO_FINALIZADO = true;
+        if (data.torneoFinalizado != null) CONFIG.TORNEO_FINALIZADO = Boolean(data.torneoFinalizado);
       } else if (typeof DataStore !== 'undefined') {
         const published = await DataStore.loadPublishedJson();
         if (published) {
           data = DataStore.toPublicPayload(published);
           source = 'json';
-          if (data.torneoFinalizado) CONFIG.TORNEO_FINALIZADO = true;
+          if (data.torneoFinalizado != null) CONFIG.TORNEO_FINALIZADO = Boolean(data.torneoFinalizado);
         } else {
           data = getDemoData();
           source = 'demo';

@@ -8,7 +8,7 @@
 const CONFIG = {
   TOKEN: 'iespasco-sync-2026',
   /** Subí este número en cada cambio para verificar el deploy */
-  VERSION: '2026-08-24-delegados-v3',
+  VERSION: '2026-08-24-delegados-v4',
   SHEET_NAMES: {
     equipos: 'Equipos',
     fixture: 'Fixture',
@@ -398,6 +398,14 @@ function doGet(e) {
       if (token !== CONFIG.TOKEN) return jsonOut({ ok: false, error: 'Token inválido' });
       setupSheets();
       return jsonOut({ ok: true, message: 'Hojas creadas/verificadas' });
+    }
+    if (action === 'read') {
+      var tokenRead = (e.parameter && e.parameter.token) || '';
+      if (tokenRead === CONFIG.TOKEN) {
+        return jsonOut(buildBundle_(ss, true));
+      }
+      // sin token = lectura pública
+      return jsonOut(buildBundle_(ss, false));
     }
     // Fallback por si el POST se convierte en GET (redirect de Apps Script)
     if (action === 'delegado_login' || action === 'delegado_data' || action === 'reclamo_crear') {

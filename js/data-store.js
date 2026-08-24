@@ -86,11 +86,14 @@ const DataStore = (() => {
   }
 
   function mapResultado(r) {
-    const aprobadoRaw = r.aprobado ?? r.Aprobado ?? true;
-    const aprobado =
-      typeof aprobadoRaw === 'boolean'
-        ? aprobadoRaw
-        : String(aprobadoRaw).toUpperCase() === 'SI' || String(aprobadoRaw) === 'true';
+    const aprobadoRaw = r.aprobado ?? r.Aprobado;
+    let aprobado = true;
+    if (aprobadoRaw !== undefined && aprobadoRaw !== null && String(aprobadoRaw).trim() !== '') {
+      aprobado =
+        typeof aprobadoRaw === 'boolean'
+          ? aprobadoRaw
+          : String(aprobadoRaw).toUpperCase() === 'SI' || String(aprobadoRaw) === 'true';
+    }
     return {
       partidoId: String(r.partidoId ?? r.Partido_ID ?? '').trim(),
       golesA: Number(r.golesA ?? r.Goles_A ?? 0) || 0,
